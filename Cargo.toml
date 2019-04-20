@@ -3,5 +3,7 @@ name = "py-comp"
 version = "0.1.0"
 edition = '2018'
 authors = ["Reuven Podmazo <reuven.podmazo@gmail.com>"]
+license = "MIT"
+description = "A macro implementing a Python-like generator expression"
 
 [dependencies]
