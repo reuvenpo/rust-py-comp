@@ -5,5 +5,9 @@ edition = '2018'
 authors = ["Reuven Podmazo <reuven.podmazo@gmail.com>"]
 license = "MIT"
 description = "A macro implementing a Python-like generator expression"
+repository = "https://github.com/reuvenpo/rust-py-comp/"
+readme = "Readme.md"
+keywords = ["generator", "comprehension", "comp", "list", "python"]
+categories = ["rust-patterns"]
 
 [dependencies]
