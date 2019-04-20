@@ -24,7 +24,7 @@ This means that it can be `.collect()`ed into any container you like.
 # Examples
 
 Simple generator expression with a conditional:
-```
+```rust
 use py_comp::comp;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -40,7 +40,7 @@ assert_eq!(comp_vector, vec![&Foo(12)])
 ```
 
 Triple cartesian product with conditions and patterns:
-```
+```rust
 use py_comp::comp;
 
 #[derive(Debug, PartialEq, Eq)]
