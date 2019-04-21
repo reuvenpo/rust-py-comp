@@ -10,12 +10,12 @@
 //! * The pattern between the `for` and `in` tokens is a fully-fledged
 //!   rust pattern, which can be as simple as a simple token and as complex
 //!   as struct destructuring.
-//!  * The expression defining the iterator after the `for` token
-//!    (and potentially before an `if` token) must  evaluate to either an
-//!    `Iterator` or an `impl IntoIterator`, and end with a semicolon (;).
-//!  * The conditional expression after the `if` token
-//!    (and potentially before a `for` token) must evaluate to a boolean,
-//!    and end with a semicolon (;).
+//! * The expression defining the iterator after the `for` token
+//!   (and potentially before an `if` token) must  evaluate to either an
+//!   `Iterator` or an `impl IntoIterator`, and end with a semicolon (;).
+//! * The conditional expression after the `if` token
+//!   (and potentially before a `for` token) must evaluate to a boolean,
+//!   and end with a semicolon (;).
 //!
 //! The expression replaced by the `comp!()` macro invocation is a lazy
 //! iterator whose lifetime is bound by any references it needs to capture.
