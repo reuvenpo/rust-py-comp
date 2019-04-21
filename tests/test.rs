@@ -156,6 +156,38 @@ fn basic_implementation_cartesian_with_conditions_4_layers() {
 }
 
 #[test]
+fn various_forms_of_usage() {
+    let x = &[Foo(1), Foo(2)];
+    let y = &[[Foo(1), Foo(2)], [Foo(3), Foo(4)]];
+    let z = &[
+        [[Foo(1), Foo(2)], [Foo(3), Foo(4)]],
+        [[Foo(1), Foo(2)], [Foo(3), Foo(4)]],
+    ];
+
+    // importantly:
+    // * trailing semicolon is optional.
+    // * you can nest as many `for in` clauses as you want.
+    // * you may use an `if` clause after a  `for in` clause.
+    let _ = comp!(a; for a in x);
+    let _ = comp!(a; for a in x;);
+
+    let _ = comp!(a; for a in x; if *a == Foo(123));
+    let _ = comp!(a; for a in x; if *a == Foo(123););
+
+    let _ = comp!(a; for x in y; for a in x);
+    let _ = comp!(a; for x in y; for a in x;);
+
+    let _ = comp!(a; for x in y; if x[0] == Foo(123); for a in x);
+    let _ = comp!(a; for x in y; if x[0] == Foo(123); for a in x;);
+
+    let _ = comp!(a; for x in y; for a in x; if x[0] == Foo(123));
+    let _ = comp!(a; for x in y; for a in x; if x[0] == Foo(123););
+
+    let _ = comp!(a; for y in z; for x in y; for a in x);
+    let _ = comp!(a; for y in z; for x in y; for a in x;);
+}
+
+#[test]
 fn comp_1_layer() {
     // This needs to be a reference to an array because of how the closures
     // capture their environment
@@ -166,7 +198,7 @@ fn comp_1_layer() {
         xyz1.push(a)
     }
 
-    let xyz2 = comp!(a; for a in x;).collect::<Vec<&Foo>>();
+    let xyz2 = comp!(a; for a in x).collect::<Vec<&Foo>>();
 
     assert_eq!(xyz1, xyz2);
 }
@@ -205,7 +237,7 @@ fn comp_with_pattern_1_layer() {
         xyz1.push(a)
     }
 
-    let xyz2 = comp!(a; for (a, _b) in x;).collect::<Vec<&Foo>>();
+    let xyz2 = comp!(a; for (a, _b) in x).collect::<Vec<&Foo>>();
 
     assert_eq!(xyz1, xyz2);
 }

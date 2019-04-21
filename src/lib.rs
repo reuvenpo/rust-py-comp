@@ -5,21 +5,34 @@
 //! This means that there a few small differences between the python syntax
 //! and the syntax provided in this macro:
 //!
-//! * The expression in the beginning of the generator expression
-//!   must end with a semicolon (;).
 //! * The pattern between the `for` and `in` tokens is a fully-fledged
 //!   rust pattern, which can be as simple as a simple token and as complex
 //!   as struct destructuring.
-//! * The expression defining the iterator after the `for` token
-//!   (and potentially before an `if` token) must  evaluate to either an
-//!   `Iterator` or an `impl IntoIterator`, and end with a semicolon (;).
-//! * The conditional expression after the `if` token
-//!   (and potentially before a `for` token) must evaluate to a boolean,
-//!   and end with a semicolon (;).
+//! * The expression defining the iterator after the `in` token
+//!   must  evaluate to either an `Iterator` or an `impl IntoIterator`.
+//! * The conditional expression after the `if` token must evaluate to
+//!   a boolean.
+//! * The expression in the beginning of the generator expression,
+//!   the expression following the `in` token, and the expression following
+//!   the `if` token, must all end with a semicolon (;). The only exception
+//!   to this is the last expression following `in` or `if` in the macro,
+//!   which may omit the trailing semicolon.
 //!
 //! The expression replaced by the `comp!()` macro invocation is a lazy
 //! iterator whose lifetime is bound by any references it needs to capture.
 //! This means that it can be `.collect()`ed into any container you like.
+//!
+//! This is a BNF description of the syntax used by this macro:
+//!
+//! ```bnf
+//! comprehension ::=  expression ";" comp_for [";"]
+//! comp_for      ::=  "for" pattern "in" expression [";" comp_iter]
+//! comp_iter     ::=  comp_for | comp_if
+//! comp_if       ::=  "if" expression [";" comp_iter]
+//! ```
+//!
+//! Just like in Python, you can nest as many `for` and `if`
+//! clauses as you like.
 //!
 //! # Examples
 //!
@@ -33,7 +46,7 @@
 //! let arr = &[Foo(11), Foo(12)];
 //!
 //! // Notice the semicolons
-//! let comp_vector = comp!(item; for item in arr; if item.0 % 10 == 2;)
+//! let comp_vector = comp!(item; for item in arr; if item.0 % 10 == 2)
 //!     .collect::<Vec<&Foo>>();
 //!
 //! assert_eq!(comp_vector, vec![&Foo(12)])
@@ -103,7 +116,7 @@ macro_rules! comp {
     (
         $item_expr: expr;
         for $name: pat in $iterator: expr;
-        if $condition: expr;
+        if $condition: expr $(;)?
     ) => {{
         let iter = $iterator;
         $crate::assert_impl_into_iter!(iter);
@@ -120,7 +133,7 @@ macro_rules! comp {
 
     (
         $item_expr: expr;
-        for $name: pat in $iterator: expr;
+        for $name: pat in $iterator: expr $(;)?
     ) => {{
         let iter = $iterator;
         $crate::assert_impl_into_iter!(iter);
