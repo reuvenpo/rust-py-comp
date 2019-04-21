@@ -421,7 +421,7 @@ fn comp_cartesian_with_pattern_with_conditions_4_layers() {
 fn triple_nested_structure() {
     // This needs to be a reference to an array because of how the closures
     // capture their environment
-    let obj_s_s_s = &[
+    let nested_3 = &[
         [
             [Foo(0), Foo(1), Foo(2)],
             [Foo(3), Foo(4), Foo(5)],
@@ -438,16 +438,19 @@ fn triple_nested_structure() {
             [Foo(24), Foo(25), Foo(26)],
         ],
     ];
-    let objects = comp!(
-        obj;
-        for obj_s_s in obj_s_s_s;
-        for obj_s in obj_s_s;
-        for obj in obj_s;
+
+    let nested_objects = comp!(
+        {
+            let inner = nested.0;
+            Foo(inner + 1)
+        };
+        for nested_2 in nested_3;
+        for nested_1 in nested_2;
+        for nested in nested_1;
     )
-    .collect::<Vec<&Foo>>();
+    .collect::<Vec<Foo>>();
 
-    let values = (0..27).map(Foo).collect::<Vec<_>>();
-    let value_references = values.iter().collect::<Vec<_>>();
+    let expected_values = (1..28).map(Foo).collect::<Vec<Foo>>();
 
-    assert_eq!(value_references, objects);
+    assert_eq!(expected_values, nested_objects);
 }

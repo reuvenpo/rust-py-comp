@@ -80,4 +80,45 @@ let xyz = comp!(
 assert_eq!(xyz, vec![(&Foo(12), &Foo(21), &Foo(32)), (&Foo(12), &Foo(22), &Foo(32))])
 ```
 
+Flatten a triple-nested structure + complex expression:
+```rust
+use py_comp::comp;
+
+#[derive(Debug, PartialEq, Eq)]
+struct Foo(i32);
+
+let nested_3 = &[
+    [
+        [Foo(0), Foo(1), Foo(2)],
+        [Foo(3), Foo(4), Foo(5)],
+        [Foo(6), Foo(7), Foo(8)],
+    ],
+    [
+        [Foo(9), Foo(10), Foo(11)],
+        [Foo(12), Foo(13), Foo(14)],
+        [Foo(15), Foo(16), Foo(17)],
+    ],
+    [
+        [Foo(18), Foo(19), Foo(20)],
+        [Foo(21), Foo(22), Foo(23)],
+        [Foo(24), Foo(25), Foo(26)],
+    ],
+];
+
+let nested_objects = comp!(
+    {
+        let inner = nested.0;
+        Foo(inner + 1)
+    };
+    for nested_2 in nested_3;
+    for nested_1 in nested_2;
+    for nested in nested_1;
+)
+.collect::<Vec<Foo>>();
+
+let expected_values = (1..28).map(Foo).collect::<Vec<Foo>>();
+
+assert_eq!(expected_values, nested_objects);
+```
+
 [`generator-expression`]: https://docs.python.org/3/reference/expressions.html#generator-expressions
