@@ -3,7 +3,7 @@
 //! usual syntax.
 //!
 //! This means that there a few small differences between the python syntax
-//! and the syntax prvided in this macro:
+//! and the syntax provided in this macro:
 //!
 //! * The expression in the beginning of the generator expression
 //!   must end with a semicolon (;).
@@ -13,7 +13,7 @@
 //!  * The expression defining the iterator after the `for` token
 //!    (and potentially before an `if` token) must  evaluate to either an
 //!    `Iterator` or an `impl IntoIterator`, and end with a semicolon (;).
-//!  * The conditional expression after the `if` expression expression
+//!  * The conditional expression after the `if` token
 //!    (and potentially before a `for` token) must evaluate to a boolean,
 //!    and end with a semicolon (;).
 //!

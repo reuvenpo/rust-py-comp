@@ -1,7 +1,7 @@
 use py_comp::comp;
 
 /// This is a stand-in for any type that does not implement Copy or Clone.
-/// Using this type can know that our implementation does not depend on
+/// Using this type we can know that our implementation does not depend on
 /// the implicit semantics of these traits and works for all types.
 #[derive(Debug, PartialEq, Eq)]
 struct Foo(i32);
