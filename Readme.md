@@ -1,3 +1,14 @@
+[![Latest Version]][crates.io] [![Documentation]][docs.rs] ![License]
+
+[crates.io]: https://crates.io/crates/py-comp
+[Latest Version]: https://img.shields.io/crates/v/py-comp.svg
+[Documentation]: https://docs.rs/py-comp/badge.svg
+[docs.rs]: https://docs.rs/py-comp
+[License]: https://img.shields.io/crates/l/py-comp.svg
+
+py-comp - A Rust macro implementing a Python-like generator expression
+=======
+
 This macro implements a syntax that emulates Pythons
 [`generator-expression`] syntax in a form more compatible with rusts
 usual syntax.
