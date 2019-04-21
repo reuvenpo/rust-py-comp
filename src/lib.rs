@@ -72,6 +72,10 @@
 
 #![warn(clippy::all)]
 
+use doc_comment::doctest;
+
+doctest!("../Readme.md");
+
 // Check that the type of the expression passed here implements IntoIterator.
 // Hopefully this optimizes away in release builds.
 #[doc(hidden)]

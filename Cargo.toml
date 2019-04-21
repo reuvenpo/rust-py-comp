@@ -11,3 +11,4 @@ keywords = ["generator", "comprehension", "comp", "list", "python"]
 categories = ["rust-patterns"]
 
 [dependencies]
+doc-comment = "0.3.0"
