@@ -130,28 +130,16 @@ use doc_comment::doctest;
 doctest!("../Readme.md");
 
 // Check that the type of the expression passed here implements IntoIterator.
-// Hopefully this optimizes away in release builds.
 #[doc(hidden)]
-#[macro_export]
-macro_rules! assert_impl_into_iter {
-    ($x: expr) => {
-        let _ = || {
-            fn assert_impl_into_iter<T>(_: T)
-            where
-                T: IntoIterator,
-            {
-            }
-            assert_impl_into_iter($x);
-        };
-    };
-}
+#[inline(always)]
+pub fn assert_impl_into_iter<T: IntoIterator>(_: &T) {}
 
 /// A Python-like lazy generator-expression
 ///
 /// For details see [module level documentation][super]
 ///
 /// [super]: ../py_comp/index.html
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! comp {
     (
         $item_expr: expr;
@@ -159,7 +147,7 @@ macro_rules! comp {
         if $condition: expr $(;)?
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter!(into_iterator);
+        $crate::assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
@@ -176,7 +164,7 @@ macro_rules! comp {
         for $pattern: pat in $into_iterator: expr $(;)?
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter!(into_iterator);
+        $crate::assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .map(move |$pattern| $item_expr)
@@ -189,7 +177,7 @@ macro_rules! comp {
         for $($rest: tt)*
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter!(into_iterator);
+        $crate::assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
@@ -208,7 +196,7 @@ macro_rules! comp {
         for $($rest: tt)*
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter!(into_iterator);
+        $crate::assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .flat_map(move |$pattern|
