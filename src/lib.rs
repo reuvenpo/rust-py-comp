@@ -155,14 +155,14 @@ macro_rules! assert_impl_into_iter {
 macro_rules! comp {
     (
         $item_expr: expr;
-        for $name: pat in $iterator: expr;
+        for $pattern: pat in $into_iterator: expr;
         if $condition: expr $(;)?
     ) => {{
-        let iter = $iterator;
-        $crate::assert_impl_into_iter!(iter);
-        iter
+        let into_iterator = $into_iterator;
+        $crate::assert_impl_into_iter!(into_iterator);
+        into_iterator
             .into_iter()
-            .filter_map(move |$name|
+            .filter_map(move |$pattern|
                 if $condition {
                     Some($item_expr)
                 } else {
@@ -173,26 +173,26 @@ macro_rules! comp {
 
     (
         $item_expr: expr;
-        for $name: pat in $iterator: expr $(;)?
+        for $pattern: pat in $into_iterator: expr $(;)?
     ) => {{
-        let iter = $iterator;
-        $crate::assert_impl_into_iter!(iter);
-        iter
+        let into_iterator = $into_iterator;
+        $crate::assert_impl_into_iter!(into_iterator);
+        into_iterator
             .into_iter()
-            .map(move |$name| $item_expr)
+            .map(move |$pattern| $item_expr)
     }};
 
     (
         $item_expr: expr;
-        for $name: pat in $iterator: expr;
+        for $pattern: pat in $into_iterator: expr;
         if $condition: expr;
         for $($rest: tt)*
     ) => {{
-        let iter = $iterator;
-        $crate::assert_impl_into_iter!(iter);
-        iter
+        let into_iterator = $into_iterator;
+        $crate::assert_impl_into_iter!(into_iterator);
+        into_iterator
             .into_iter()
-            .filter_map(move |$name|
+            .filter_map(move |$pattern|
                 if $condition {
                     Some(comp!($item_expr; for $($rest)*))
                 } else {
@@ -204,14 +204,14 @@ macro_rules! comp {
 
     (
         $item_expr: expr;
-        for $name: pat in $iterator: expr;
+        for $pattern: pat in $into_iterator: expr;
         for $($rest: tt)*
     ) => {{
-        let iter = $iterator;
-        $crate::assert_impl_into_iter!(iter);
-        iter
+        let into_iterator = $into_iterator;
+        $crate::assert_impl_into_iter!(into_iterator);
+        into_iterator
             .into_iter()
-            .flat_map(move |$name|
+            .flat_map(move |$pattern|
                 comp!($item_expr; for $($rest)*)
             )
     }};
