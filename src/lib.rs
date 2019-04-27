@@ -139,7 +139,7 @@ pub fn __py_comp_assert_impl_into_iter<T: IntoIterator>(_: &T) {}
 /// For details see [module level documentation][super]
 ///
 /// [super]: ../py_comp/index.html
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! comp {
     (
         $item_expr: expr;
@@ -203,4 +203,179 @@ macro_rules! comp {
                 comp!($item_expr; for $($rest)*)
             )
     }};
+
+    // This case is reached when the semicolon after the `$condition` is
+    // ommited (or if you gave garbage input, which will cause an error inside
+    // __py_comp__collect_condition).
+    // We defer to a separate macro for this parse to make sure that if a `for`
+    // can not be found, the macro failes rather than recursing back here.
+    (
+        $item_expr: expr;
+        for $pattern: pat in $into_iterator: expr;
+        if $($rest: tt)*
+    ) => {
+        __py_comp__collect_condition!(
+            $item_expr; for $pattern in $into_iterator if () -> ($($rest)*)
+        )
+    };
+
+    // This case is reached when the semicolon after the `$into_iterator` is
+    // ommited (or if you gave garbage input, which will cause an error inside
+    // __py_comp_collect_into_iterator).
+    // We defer to a separate macro for this parse to make sure that if a `for`
+    // or `if`can not be found, the macro failes rather than recursing back
+    // here.
+    (
+        $item_expr: expr;
+        for $pattern: pat in $($rest: tt)*
+    ) => {
+        __py_comp_collect_into_iterator!(
+            $item_expr; for $pattern in () -> ($($rest)+)
+        )
+    };
+
+    // TODO write helper macro for this case
+    // Allow the pattern to not require parentheses if it's a comma delimited
+    // list of identifiers (in which case we surround it with parentheses)
+    // (
+    //     $item_expr: expr;
+    //     for $($identifiers: ident),+ in $($rest: tt)*
+    // ) => {
+    //     comp!($item_expr; for ( $($identifiers),+ ) in $($rest)*)
+    // };
+
+    // This case is reached when the semicolon after the `item_expr` is ommited
+    // (or if you gave garbage input, which will cause an error inside
+    // __py_comp_collect_item_expr).
+    // We defer to a separate macro for this parse to make sure that if a `for`
+    // can not be found, the macro failes rather than recursing back here.
+    ($($rest: tt)+) => {
+        __py_comp_collect_item_expr!(
+            () -> ($($rest)+)
+        )
+    };
+}
+
+/// TODO write tests for non-semicolon `if` clauses.
+/// TODO maybe this can be in the main macro after all?
+///
+/// Collect tokens until a `for` is reached, assert that they can make
+/// a valid expression, and call `comp!()` back with that expression
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp__collect_condition {
+    // Stop collecting when the first token on the right is `for`,
+    // but only if we collected at least one token before that.
+    // This is generally correct, and allows `for` expressions as the
+    // `item_expr` (which currently always evaluates to () but still.)
+    (
+        $item_expr: expr;
+        for $pattern: pat in
+        ($($collected: tt)+) -> (for $($rest: tt)+)
+    ) => {
+        comp!(
+            $item_expr;
+            for $pattern in __py_comp_as_expr!($($collected)+);
+            for $($rest)+
+        )
+    };
+
+    // Keep collecting from the right parens to the left parens
+    (
+        $item_expr: expr;
+        for $pattern: pat in
+        ($($collected: tt)*) -> ($token: tt $($rest: tt)+)
+    ) => {
+        __py_comp__collect_condition!(
+            $item_expr;
+            for $pattern in
+            ($($collected)* $token) -> ($($rest)+)
+        )
+    };
+}
+
+/// TODO write tests for non-semicolon `in` clauses.
+/// TODO maybe this can be in the main macro after all?
+///
+/// Collect tokens until a `for` or `if` is reached, assert that they can make
+/// a valid expression, and call `comp!()` back with that expression
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp_collect_into_iterator {
+    // Stop collecting when the first token on the right is `for`,
+    // but only if we collected at least one token before that.
+    // This is generally correct, and allows `for` expressions as the
+    // `item_expr` (which currently always evaluates to () but still.)
+    (
+        $item_expr: expr;
+        for $pattern: pat in
+        ($($collected: tt)+) -> (for $($rest: tt)+)
+    ) => {
+        comp!(
+            $item_expr;
+            for $pattern in __py_comp_as_expr!($($collected)+);
+            for $($rest)+
+        )
+    };
+
+    // Stop collecting when the first token on the right is `if`,
+    // but only if we collected at least one token before that.
+    // This is generally correct, and allows `if` expressions as the
+    // `item_expr`.
+    (
+        $item_expr: expr;
+        for $pattern: pat in
+        ($($collected: tt)+) -> (if $($rest: tt)+)
+    ) => {
+        comp!(
+            $item_expr;
+            for $pattern in __py_comp_as_expr!($($collected)+);
+            if $($rest)+
+        )
+    };
+
+    // Keep collecting from the right parens to the left parens
+    (
+        $item_expr: expr;
+        for $pattern: pat in
+        ($($collected: tt)*) -> ($token: tt $($rest: tt)+)
+    ) => {
+        __py_comp_collect_into_iterator!(
+            $item_expr;
+            for $pattern in
+            ($($collected)* $token) -> ($($rest)+)
+        )
+    };
+}
+
+/// Collect tokens until a `for` is reached, assert that they can make
+/// a valid expression, and call `comp!()` back with that expression
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp_collect_item_expr {
+    // Stop collecting when the first token on the right is `for`,
+    // but only if we collected at least one token before that.
+    // This is generally correct, and allows `for` expressions as the
+    // `item_expr` (which currently always evaluates to () but still.)
+    (($($collected: tt)+) -> (for $($rest: tt)+)) => {
+        comp!(
+            __py_comp_as_expr!($($collected)+); for $($rest)+
+        )
+    };
+
+    // Keep collecting from the right parens to the left parens
+    (($($collected: tt)*) -> ($token: tt $($rest: tt)+)) => {
+        __py_comp_collect_item_expr!(
+            ($($collected)* $token) -> ($($rest)+)
+        )
+    };
+}
+
+/// coerce to `expr`
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp_as_expr {
+    ($e: expr) => {
+        $e
+    };
 }

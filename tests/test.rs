@@ -187,13 +187,24 @@ fn various_forms_of_usage() {
         [[Foo(1), Foo(2)], [Foo(3), Foo(4)]],
         [[Foo(1), Foo(2)], [Foo(3), Foo(4)]],
     ];
+    let array_of_tuples = &[
+        (Foo(1), Foo(2)),
+        (Foo(3), Foo(4)),
+        (Foo(1), Foo(2)),
+        (Foo(3), Foo(4)),
+    ];
 
     // importantly:
     // * trailing semicolon is optional.
     // * you can nest as many `for in` clauses as you want.
     // * you may use an `if` clause after a  `for in` clause.
+    let _ = comp!(a for a in x);
     let _ = comp!(a; for a in x);
     let _ = comp!(a; for a in x;);
+
+    let _ = comp!(a.0 + b.0 for a, b in array_of_tuples);
+    let _ = comp!(a.0 + b.0 for (a, b) in array_of_tuples);
+    let _ = comp!(a.0 + b.0 for (a, b) in array_of_tuples;);
 
     let _ = comp!(a; for a in x; if *a == Foo(123));
     let _ = comp!(a; for a in x; if *a == Foo(123););
