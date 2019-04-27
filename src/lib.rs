@@ -139,7 +139,7 @@ pub fn __py_comp_assert_impl_into_iter<T: IntoIterator>(_: &T) {}
 /// For details see [module level documentation][super]
 ///
 /// [super]: ../py_comp/index.html
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! comp {
     (
         $item_expr: expr;

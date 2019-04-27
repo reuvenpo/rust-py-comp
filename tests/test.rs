@@ -492,3 +492,12 @@ fn uncopyable_iterator_of_uncopyable_iterators() {
         for item in uncopyable_iterator;
     );
 }
+
+mod renamed_comp_import {
+    use py_comp::comp as c;
+
+    #[test]
+    fn use_renamed_macro() {
+        let _ = c!(y; for x in &[[0]]; for y in x);
+    }
+}
