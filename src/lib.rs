@@ -132,7 +132,7 @@ doctest!("../Readme.md");
 // Check that the type of the expression passed here implements IntoIterator.
 #[doc(hidden)]
 #[inline(always)]
-pub fn assert_impl_into_iter<T: IntoIterator>(_: &T) {}
+pub fn __py_comp_assert_impl_into_iter<T: IntoIterator>(_: &T) {}
 
 /// A Python-like lazy generator-expression
 ///
@@ -147,7 +147,7 @@ macro_rules! comp {
         if $condition: expr $(;)?
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter(&into_iterator);
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
@@ -164,7 +164,7 @@ macro_rules! comp {
         for $pattern: pat in $into_iterator: expr $(;)?
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter(&into_iterator);
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .map(move |$pattern| $item_expr)
@@ -177,7 +177,7 @@ macro_rules! comp {
         for $($rest: tt)*
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter(&into_iterator);
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
@@ -196,7 +196,7 @@ macro_rules! comp {
         for $($rest: tt)*
     ) => {{
         let into_iterator = $into_iterator;
-        $crate::assert_impl_into_iter(&into_iterator);
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .flat_map(move |$pattern|
