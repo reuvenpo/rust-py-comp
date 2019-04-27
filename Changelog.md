@@ -1,3 +1,7 @@
+# Version next
+
+* Fixed bug preventing usage of `IntoIterator`s which are not copy
+
 # Version 0.1.2
 
 * Readme.md examples are now tested
