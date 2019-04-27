@@ -6,6 +6,30 @@ use py_comp::comp;
 #[derive(Debug, PartialEq, Eq)]
 struct Foo(i32);
 
+/// An Iterator that is not Copy.
+#[derive(Debug)]
+struct UncopyableIterator {}
+
+impl Iterator for UncopyableIterator {
+    type Item = ();
+
+    fn next(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+
+/// An Iterator that is not Copy of Iterators that are not Copy.
+#[derive(Debug)]
+struct UncopyableIteratorOfUncopyableIterators {}
+
+impl Iterator for UncopyableIteratorOfUncopyableIterators {
+    type Item = UncopyableIterator;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+
 #[test]
 fn basic_implementation_1_layer() {
     // This needs to be a reference to an array because of how the closures
@@ -453,4 +477,18 @@ fn triple_nested_structure() {
     let expected_values = (1..28).map(Foo).collect::<Vec<Foo>>();
 
     assert_eq!(expected_values, nested_objects);
+}
+
+#[test]
+fn uncopyable_iterator() {
+    let _ = comp!(x; for x in UncopyableIterator {});
+}
+
+#[test]
+fn uncopyable_iterator_of_uncopyable_iterators() {
+    let _ = comp!(
+        item;
+        for uncopyable_iterator in UncopyableIteratorOfUncopyableIterators {};
+        for item in uncopyable_iterator;
+    );
 }
