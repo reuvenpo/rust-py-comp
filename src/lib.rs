@@ -129,7 +129,7 @@ use doc_comment::doctest;
 
 doctest!("../Readme.md");
 
-// Check that the type of the expression passed here implements IntoIterator.
+/// Check that the type of the expression passed here implements IntoIterator.
 #[doc(hidden)]
 #[inline(always)]
 pub fn __py_comp_assert_impl_into_iter<T: IntoIterator>(_: &T) {}
