@@ -13,7 +13,19 @@ struct UncopyableIterator {}
 impl Iterator for UncopyableIterator {
     type Item = ();
 
-    fn next(&mut self) -> Option<()> {
+    fn next(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+
+/// An Iterator that is not Copy of Iterators that are not Copy.
+#[derive(Debug)]
+struct UncopyableIteratorOfUncopyableIterators {}
+
+impl Iterator for UncopyableIteratorOfUncopyableIterators {
+    type Item = UncopyableIterator;
+
+    fn next(&mut self) -> Option<Self::Item> {
         None
     }
 }
@@ -470,4 +482,13 @@ fn triple_nested_structure() {
 #[test]
 fn uncopyable_iterator() {
     let _ = comp!(x; for x in UncopyableIterator {});
+}
+
+#[test]
+fn uncopyable_iterator_of_uncopyable_iterators() {
+    let _ = comp!(
+        item;
+        for uncopyable_iterator in UncopyableIteratorOfUncopyableIterators {};
+        for item in uncopyable_iterator;
+    );
 }
