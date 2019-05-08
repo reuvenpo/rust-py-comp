@@ -141,6 +141,84 @@ pub fn __py_comp_assert_impl_into_iter<T: IntoIterator>(_: &T) {}
 /// [super]: ../py_comp/index.html
 #[macro_export(local_inner_macros)]
 macro_rules! comp {
+    ($item_expr: expr; for $($rest: tt)+) => {
+        __py_comp__for!($item_expr; for $($rest)+)
+    };
+    ($($tts: tt)+) => {
+        __py_comp__collect_item_expr!(() -> ($($tts)+))
+    }
+}
+
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp__collect_item_expr {
+    (($($collected: tt)+) -> (for $($rest: tt)+)) => {
+        __py_comp__for!(
+            __py_comp__coerce_to_expr!($($collected)+); for $($rest)+
+        )
+    };
+    (($($collected: tt)*) -> ($token: tt $($rest: tt)+)) => {
+        __py_comp__collect_item_expr!(
+            ($($collected)* $token) -> ($($rest)+)
+        )
+    };
+}
+
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp__for {
+    ($item_expr: expr; for $pattern: pat in $($rest: tt)+) => {
+        __py_comp__for_in!($item_expr; for $pattern in $($rest)+)
+    };
+    ($item_expr: expr; for $($idents: ident),+ in $($rest: tt)+) => {
+        __py_comp__for_in!($item_expr; for ($($idents),+) in $($rest)+)
+    };
+}
+
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp__for_in {
+    ($item_expr: expr; for $pattern: pat in $into_iterator: expr $(;)?) => {{
+        let into_iterator = $into_iterator;
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
+        into_iterator.into_iter().map(move |$pattern| $item_expr)
+    }};
+    (
+        $item_expr: expr;
+        for $pattern: pat in $into_iterator: expr; $($rest: tt)+
+    ) => {};
+}
+
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp__collect_into_iterator {
+    (
+        $item_expr: expr;
+        for $pattern: pat in
+        ($($collected: tt)+) -> (for $($rest: tt)+)
+    ) => {
+        __py_comp__for!(
+            $item_expr;
+            for $pattern in  __py_comp__coerce_to_expr!($($collected)+);
+            for $($rest)+
+        )
+    };
+    (
+        $item_expr: expr;
+        for $pattern: pat in
+        ($($collected: tt)*) -> ($token: tt $($rest: tt)+)
+    ) => {
+        __py_comp__collect_into_iterator!(
+            $item_expr;
+            for $pattern in
+            ($($collected)* $token) -> ($($rest)+)
+        )
+    };
+}
+
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! fully_evaluated_comp {
     (
         $item_expr: expr;
         for $pattern: pat in $into_iterator: expr;
@@ -203,4 +281,12 @@ macro_rules! comp {
                 comp!($item_expr; for $($rest)*)
             )
     }};
+}
+
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
+macro_rules! __py_comp__coerce_to_expr {
+    ($expr: expr) => {
+        $expr
+    };
 }
