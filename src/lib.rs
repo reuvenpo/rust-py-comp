@@ -1,12 +1,12 @@
-//! This macro implements a syntax that emulates Pythons
-//! [`generator-expression`] syntax in a form more compatible with rusts
+//! This macro implements a syntax that emulates Python's
+//! [`generator-expression`] syntax in a form more compatible with Rust's
 //! usual syntax.
 //!
-//! This means that there a few small differences between the python syntax
+//! This means that there are a few small differences between the Python syntax
 //! and the syntax provided in this macro:
 //!
 //! * The pattern between the `for` and `in` tokens is a fully-fledged
-//!   rust pattern, which can be as simple as a simple token and as complex
+//!   Rust pattern, which can be as simple as a simple token and as complex
 //!   as struct destructuring.
 //! * The expression defining the iterator after the `in` token
 //!   must  evaluate to either an `Iterator` or an `impl IntoIterator`.
@@ -37,7 +37,7 @@
 //! # Examples
 //!
 //! Simple generator expression with a conditional:
-//! ```
+//! ```rust
 //! use py_comp::comp;
 //!
 //! #[derive(Debug, PartialEq, Eq)]
@@ -53,7 +53,7 @@
 //! ```
 //!
 //! Triple cartesian product with conditions and patterns:
-//! ```
+//! ```rust
 //! use py_comp::comp;
 //!
 //! #[derive(Debug, PartialEq, Eq)]
@@ -79,6 +79,7 @@
 //! // but can be as long as long as you need it to be.
 //! assert_eq!(xyz, vec![(&Foo(12), &Foo(21), &Foo(32)), (&Foo(12), &Foo(22), &Foo(32))])
 //! ```
+//!
 //! Flatten a triple-nested structure + complex expression:
 //! ```rust
 //! use py_comp::comp;
