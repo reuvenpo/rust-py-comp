@@ -4,6 +4,11 @@
 * Added clarification to Readme.md about `Copy` requirements of
   captured objects
 * Added support for `if let` clauses
+* Added support for consecutive `if` and `if let` clauses such as
+
+  ```rust
+  comp!(x; for x in 0..10; if x > 3; if x < 6)
+  ```
 
 # Version 0.1.2
 

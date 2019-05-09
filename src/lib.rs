@@ -27,13 +27,13 @@
 //!
 //! Note though that, at least for now, all objects named in an `in` clause,
 //! (except for the first `in` clause) must be either `Copy` or introduced by
-//! the previous `for` or `if let` clause. This is because the macro uses a
+//! the previous `for` or `if let` clauses. This is because the macro uses a
 //! `move` closure (`FnOnce`) for each level of nesting, which may need to be
 //! instantiated more than once without implicit cloning of the captured
 //! objects.
 //! Similarly, objects named in the "yield" expression (preceding the first
 //! `for` clause) must be `Copy` types if they were not introduced by the final
-//! `for` or `if let` clause. This is because they may be used in multiple
+//! `for` or `if let` clauses. This is because they may be used in multiple
 //! output items.
 //!
 //! Specifying which objects should be cloned and where may be added in the
@@ -42,11 +42,11 @@
 //! This is a BNF description of the syntax used by this macro:
 //!
 //! ```bnf
-//! comprehension ::=  expression ";" comp_for [";"]
-//! comp_for      ::=  "for" pattern "in" expression [";" comp_iter]
-//! comp_iter     ::=  comp_for | comp_if | comp_if_let
-//! comp_if       ::=  "if" expression [";" comp_for]
-//! comp_if_let   ::=  "if" "let" pattern ("|" pattern)* "=" expression [";" comp_for]
+//! comprehension ::=  expression ";" comp_for [comp_iter] [";"]
+//! comp_iter     ::=  ";" (comp_for | comp_if | comp_if_let)
+//! comp_for      ::=  "for" pattern "in" expression [comp_iter]
+//! comp_if       ::=  "if" expression [comp_iter]
+//! comp_if_let   ::=  "if" "let" pattern ("|" pattern)* "=" expression [comp_iter]
 //! ```
 //!
 //! Just like in Python, you can nest as many `for`, `if`, and `if let`
@@ -163,42 +163,135 @@ pub fn __py_comp_assert_impl_into_iter<T: IntoIterator>(_: &T) {}
 /// [super]: ../py_comp/index.html
 #[macro_export(local_inner_macros)]
 macro_rules! comp {
+    // @parse_if if
+    (@parse_if
+        $item_expr: expr;
+        if $condition: expr
+    ) => {
+        if $condition {
+            Some($item_expr)
+        } else {
+            None
+        }
+    };
+
+    // @parse_if if-let
+    (@parse_if
+        $item_expr: expr;
+        if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr
+    ) => {
+        if let $( $if_let_pattern )|+ = $if_let_expr {
+            Some($item_expr)
+        } else {
+            None
+        }
+    };
+
+    // @parse_if if for ...
+    // This case returns to the main macro parsing.
+    (@parse_if
+        $item_expr: expr;
+        if $condition: expr;
+        for $($rest: tt)*
+    ) => {
+        if $condition {
+            Some(comp!($item_expr; for $($rest)*))
+        } else {
+            None
+        }
+    };
+
+    // @parse_if if-let for ...
+    // This case returns to the main macro parsing.
+    (@parse_if
+        $item_expr: expr;
+        if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr;
+        for $($rest: tt)*
+    ) => {
+        if let $( $if_let_pattern )|+ = $if_let_expr {
+            Some(comp!($item_expr; for $($rest)*))
+        } else {
+            None
+        }
+    };
+
+    // @parse_if if if ...
+    (@parse_if
+        $item_expr: expr;
+        if $condition: expr;
+        if $($rest: tt)*
+    ) => {
+        if $condition {
+            comp!(@parse_if $item_expr; if $($rest)*)
+        } else {
+            None
+        }
+    };
+
+    // @parse_if if-let if ...
+    (@parse_if
+        $item_expr: expr;
+        if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr;
+        if $($rest: tt)*
+    ) => {
+        if let $( $if_let_pattern )|+ = $if_let_expr {
+            comp!(@parse_if $item_expr; if $($rest)*)
+        } else {
+            None
+        }
+    };
+
+    // for in $( if $( if-let )* )+
     (
         $item_expr: expr;
-        for $pattern: pat in $into_iterator: expr;
-        if $condition: expr $(;)?
+        for $pattern: pat in $into_iterator: expr
+        $(
+            ; if $condition: expr
+            $( ; if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr )*
+        )+
+        $(;)?
     ) => {{
         let into_iterator = $into_iterator;
         $crate::__py_comp_assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
-                if $condition {
-                    Some($item_expr)
-                } else {
-                    None
-                }
+                comp!(@parse_if
+                    $item_expr
+                    $(
+                        ; if $condition
+                        $( ; if let $( $if_let_pattern )|+ = $if_let_expr )*
+                    )+
+                )
             )
     }};
 
+    // for in $( if-let $( if )* )+
     (
         $item_expr: expr;
-        for $pattern: pat in $into_iterator: expr;
-        if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr $(;)?
+        for $pattern: pat in $into_iterator: expr
+        $(
+            ; if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr
+            $( ; if $condition: expr )*
+        )+
+        $(;)?
     ) => {{
         let into_iterator = $into_iterator;
         $crate::__py_comp_assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
-                if let $($if_let_pattern)|+ = $if_let_expr {
-                    Some($item_expr)
-                } else {
-                    None
-                }
+                comp!(@parse_if
+                    $item_expr
+                    $(
+                        ; if let $( $if_let_pattern )|+ = $if_let_expr
+                        $( ; if $condition )*
+                    )+
+                )
             )
     }};
 
+    // for in
     (
         $item_expr: expr;
         for $pattern: pat in $into_iterator: expr $(;)?
@@ -210,10 +303,14 @@ macro_rules! comp {
             .map(move |$pattern| $item_expr)
     }};
 
+    // for in $( if $( if-let )* )+ for ...
     (
         $item_expr: expr;
         for $pattern: pat in $into_iterator: expr;
-        if $condition: expr;
+        $(
+            if $condition: expr;
+            $( if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr; )*
+        )+
         for $($rest: tt)*
     ) => {{
         let into_iterator = $into_iterator;
@@ -221,19 +318,26 @@ macro_rules! comp {
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
-                if $condition {
-                    Some(comp!($item_expr; for $($rest)*))
-                } else {
-                    None
-                }
+                comp!(@parse_if
+                    $item_expr;
+                    $(
+                        if $condition;
+                        $( if let $( $if_let_pattern )|+ = $if_let_expr; )*
+                    )+
+                    for $($rest)*
+                )
             )
             .flatten()
     }};
 
+    // for in $( if-let $( if )* )+ for ...
     (
         $item_expr: expr;
         for $pattern: pat in $into_iterator: expr;
-        if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr;
+        $(
+            if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr;
+            $( if $condition: expr; )*
+        )+
         for $($rest: tt)*
     ) => {{
         let into_iterator = $into_iterator;
@@ -241,15 +345,19 @@ macro_rules! comp {
         into_iterator
             .into_iter()
             .filter_map(move |$pattern|
-                if let $($if_let_pattern)|+ = $if_let_expr {
-                    Some(comp!($item_expr; for $($rest)*))
-                } else {
-                    None
-                }
+                comp!(@parse_if
+                    $item_expr;
+                    $(
+                        if let $( $if_let_pattern )|+ = $if_let_expr;
+                        $( if $condition; )*
+                    )+
+                    for $($rest)*
+                )
             )
             .flatten()
     }};
 
+    // for in for ...
     (
         $item_expr: expr;
         for $pattern: pat in $into_iterator: expr;
