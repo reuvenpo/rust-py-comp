@@ -33,6 +33,18 @@ The expression replaced by the `comp!()` macro invocation is a lazy
 iterator whose lifetime is bound by any references it needs to capture.
 This means that it can be `.collect()`ed into any container you like.
 
+Note though that, at least for now, all objects named in an `in` clause,
+(except for the first `in` clause) must be either a `Copy` or introduced by
+the previous `for` clause. This is because the macro uses a `move` closure
+(`FnOnce`) for each level of nesting, which may need to be instantiated
+more than once without implicit cloning of the captured objects.
+Similarly, objects named in the "yield" expression preceding the first
+`for` clause must be `Copy` types if they were not introduced by the final
+`for` clause. This is because they may be used in multiple output items.
+
+Specifying which objects should be cloned and where may be added in the
+future, but will probably require a breaking change.
+
 This is a BNF description of the syntax used by this macro:
 
 ```bnf

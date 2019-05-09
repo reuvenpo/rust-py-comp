@@ -1,6 +1,8 @@
 # Version next
 
 * Fixed bug preventing usage of `IntoIterator`s which are not copy
+* Added clarification to Readme.md about `Copy` requirements of
+  captured objects
 
 # Version 0.1.2
 
