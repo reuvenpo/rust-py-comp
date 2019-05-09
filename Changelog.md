@@ -3,6 +3,7 @@
 * Fixed bug preventing usage of `IntoIterator`s which are not copy
 * Added clarification to Readme.md about `Copy` requirements of
   captured objects
+* Added support for `if let` clauses
 
 # Version 0.1.2
 

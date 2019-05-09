@@ -9,9 +9,12 @@
 //!   Rust pattern, which can be as simple as a simple token and as complex
 //!   as struct destructuring.
 //! * The expression defining the iterator after the `in` token
-//!   must  evaluate to either an `Iterator` or an `impl IntoIterator`.
+//!   must evaluate to either an `Iterator` or an `impl IntoIterator`.
 //! * The conditional expression after the `if` token must evaluate to
 //!   a boolean.
+//! * You may use an `if let` clause instead of the usual `if` clause wherever
+//!   `if` clauses are allowed. Any names introduced in the `if let` clause
+//!   are available in any following clause.
 //! * The expression in the beginning of the generator expression,
 //!   the expression following the `in` token, and the expression following
 //!   the `if` token, must all end with a semicolon (;). The only exception
@@ -23,13 +26,15 @@
 //! This means that it can be `.collect()`ed into any container you like.
 //!
 //! Note though that, at least for now, all objects named in an `in` clause,
-//! (except for the first `in` clause) must be either a `Copy` or introduced by
-//! the previous `for` clause. This is because the macro uses a `move` closure
-//! (`FnOnce`) for each level of nesting, which may need to be instantiated
-//! more than once without implicit cloning of the captured objects.
-//! Similarly, objects named in the "yield" expression preceding the first
-//! `for` clause must be `Copy` types if they were not introduced by the final
-//! `for` clause. This is because they may be used in multiple output items.
+//! (except for the first `in` clause) must be either `Copy` or introduced by
+//! the previous `for` or `if let` clause. This is because the macro uses a
+//! `move` closure (`FnOnce`) for each level of nesting, which may need to be
+//! instantiated more than once without implicit cloning of the captured
+//! objects.
+//! Similarly, objects named in the "yield" expression (preceding the first
+//! `for` clause) must be `Copy` types if they were not introduced by the final
+//! `for` or `if let` clause. This is because they may be used in multiple
+//! output items.
 //!
 //! Specifying which objects should be cloned and where may be added in the
 //! future, but will probably require a breaking change.
@@ -39,11 +44,12 @@
 //! ```bnf
 //! comprehension ::=  expression ";" comp_for [";"]
 //! comp_for      ::=  "for" pattern "in" expression [";" comp_iter]
-//! comp_iter     ::=  comp_for | comp_if
-//! comp_if       ::=  "if" expression [";" comp_iter]
+//! comp_iter     ::=  comp_for | comp_if | comp_if_let
+//! comp_if       ::=  "if" expression [";" comp_for]
+//! comp_if_let   ::=  "if" "let" pattern ("|" pattern)* "=" expression [";" comp_for]
 //! ```
 //!
-//! Just like in Python, you can nest as many `for` and `if`
+//! Just like in Python, you can nest as many `for`, `if`, and `if let`
 //! clauses as you like.
 //!
 //! ## Examples
@@ -177,6 +183,24 @@ macro_rules! comp {
 
     (
         $item_expr: expr;
+        for $pattern: pat in $into_iterator: expr;
+        if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr $(;)?
+    ) => {{
+        let into_iterator = $into_iterator;
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
+        into_iterator
+            .into_iter()
+            .filter_map(move |$pattern|
+                if let $($if_let_pattern)|+ = $if_let_expr {
+                    Some($item_expr)
+                } else {
+                    None
+                }
+            )
+    }};
+
+    (
+        $item_expr: expr;
         for $pattern: pat in $into_iterator: expr $(;)?
     ) => {{
         let into_iterator = $into_iterator;
@@ -198,6 +222,26 @@ macro_rules! comp {
             .into_iter()
             .filter_map(move |$pattern|
                 if $condition {
+                    Some(comp!($item_expr; for $($rest)*))
+                } else {
+                    None
+                }
+            )
+            .flatten()
+    }};
+
+    (
+        $item_expr: expr;
+        for $pattern: pat in $into_iterator: expr;
+        if let $( $if_let_pattern: pat )|+ = $if_let_expr: expr;
+        for $($rest: tt)*
+    ) => {{
+        let into_iterator = $into_iterator;
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
+        into_iterator
+            .into_iter()
+            .filter_map(move |$pattern|
+                if let $($if_let_pattern)|+ = $if_let_expr {
                     Some(comp!($item_expr; for $($rest)*))
                 } else {
                     None

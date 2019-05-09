@@ -179,6 +179,10 @@ fn basic_implementation_cartesian_with_conditions_4_layers() {
     assert_eq!(xyz1, xyz2);
 }
 
+/// Check that various mixed forms of invocation *compile*.
+/// This is not meant to be exhaustive, (it can't be, this macro can
+/// accept infinitely long inputs) but it should be representative and cover
+/// all/most "parse paths" in the macro, to make sure they are not regressed.
 #[test]
 fn various_forms_of_usage() {
     let x = &[Foo(1), Foo(2)];
@@ -191,7 +195,7 @@ fn various_forms_of_usage() {
     // importantly:
     // * trailing semicolon is optional.
     // * you can nest as many `for in` clauses as you want.
-    // * you may use an `if` clause after a  `for in` clause.
+    // * you may use an `if` or `if let` clause after any `for in` clause.
     let _ = comp!(a; for a in x);
     let _ = comp!(a; for a in x;);
 
@@ -209,6 +213,20 @@ fn various_forms_of_usage() {
 
     let _ = comp!(a; for y in z; for x in y; for a in x);
     let _ = comp!(a; for y in z; for x in y; for a in x;);
+
+    let _ = comp!(a; for x in y; for a in x; if let Foo(1) | Foo(2) = a);
+    let _ = comp!(a; for x in y; for a in x; if let Foo(1) | Foo(2) = a;);
+
+    let _ = comp!(
+        (a, b);
+        for a in x; if let Foo(1) | Foo(2) = a;
+        for b in x; if let Foo(1) | Foo(2) = b
+    );
+    let _ = comp!(
+        (a, b);
+        for a in x; if let Foo(1) | Foo(2) = a;
+        for b in x; if let Foo(1) | Foo(2) = b;
+    );
 }
 
 #[test]
@@ -244,6 +262,29 @@ fn comp_with_condition_1_layer() {
         a;
         for a in x;
         if a.0 % 10 == 2;
+    )
+    .collect::<Vec<&Foo>>();
+
+    assert_eq!(xyz1, xyz2);
+}
+
+#[test]
+fn comp_with_if_let_condition_1_layer() {
+    // This needs to be a reference to an array because of how the closures
+    // capture their environment
+    let x = &[Foo(4), Foo(8)];
+
+    let mut xyz1 = Vec::new();
+    for a in x {
+        if let Foo(_inner @ 1...6) = a {
+            xyz1.push(a)
+        }
+    }
+
+    let xyz2 = comp!(
+        a;
+        for a in x;
+        if let Foo(_inner @ 1...6) = a;
     )
     .collect::<Vec<&Foo>>();
 
@@ -359,6 +400,50 @@ fn comp_cartesian_with_conditions_4_layers() {
         if c.0 % 10 == 2;
         for d in z;
         if d.0 % 10 == 2;
+    )
+    .collect::<Vec<(&Foo, &Foo, &Foo, &Foo)>>();
+
+    assert_eq!(xyz1, xyz2);
+}
+
+#[test]
+fn comp_cartesian_with_if_let_conditions_4_layers() {
+    // These need to be references to arrays because of how the closures
+    // capture their environment
+    let w = &[Foo(1), Foo(2)];
+    let x = &[Foo(14), Foo(18)];
+    let y = &[Foo(21), Foo(22)];
+    let z = &[Foo(34), Foo(38)];
+
+    let mut xyz1 = Vec::new();
+    for a in w.iter() {
+        if a.0 % 10 == 2 {
+            for b in x.iter() {
+                if let Foo(_inner @ 11...16) = b {
+                    for c in y.iter() {
+                        if c.0 % 10 == 2 {
+                            for d in z.iter() {
+                                if let Foo(_inner @ 31...36) = d {
+                                    xyz1.push((a, b, c, d))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let xyz2 = comp!(
+        (a, b, c, d);
+        for a in w;
+        if a.0 % 10 == 2;
+        for b in x;
+        if let Foo(_inner @ 11...16) = b;
+        for c in y;
+        if c.0 % 10 == 2;
+        for d in z;
+        if let Foo(_inner @ 31...36) = d;
     )
     .collect::<Vec<(&Foo, &Foo, &Foo, &Foo)>>();
 
