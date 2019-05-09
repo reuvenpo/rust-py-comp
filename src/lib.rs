@@ -46,9 +46,10 @@
 //! Just like in Python, you can nest as many `for` and `if`
 //! clauses as you like.
 //!
-//! # Examples
+//! ## Examples
 //!
 //! Simple generator expression with a conditional:
+//!
 //! ```rust
 //! use py_comp::comp;
 //!
@@ -65,6 +66,7 @@
 //! ```
 //!
 //! Triple cartesian product with conditions and patterns:
+//!
 //! ```rust
 //! use py_comp::comp;
 //!
@@ -93,6 +95,7 @@
 //! ```
 //!
 //! Flatten a triple-nested structure + complex expression:
+//!
 //! ```rust
 //! use py_comp::comp;
 //!

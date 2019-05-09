@@ -1,3 +1,5 @@
+# py-comp - A Rust macro implementing a Python-like generator expression
+
 [![Latest Version]][crates.io] [![Documentation]][docs.rs] ![License]
 
 [crates.io]: https://crates.io/crates/py-comp
@@ -5,9 +7,6 @@
 [Documentation]: https://docs.rs/py-comp/badge.svg
 [docs.rs]: https://docs.rs/py-comp
 [License]: https://img.shields.io/crates/l/py-comp.svg
-
-py-comp - A Rust macro implementing a Python-like generator expression
-=======
 
 This macro implements a syntax that emulates Python's
 [`generator-expression`] syntax in a form more compatible with Rust's
@@ -57,9 +56,10 @@ comp_if       ::=  "if" expression [";" comp_iter]
 Just like in Python, you can nest as many `for` and `if`
 clauses as you like.
 
-# Examples
+## Examples
 
 Simple generator expression with a conditional:
+
 ```rust
 use py_comp::comp;
 
@@ -76,6 +76,7 @@ assert_eq!(comp_vector, vec![&Foo(12)])
 ```
 
 Triple cartesian product with conditions and patterns:
+
 ```rust
 use py_comp::comp;
 
@@ -104,6 +105,7 @@ assert_eq!(xyz, vec![(&Foo(12), &Foo(21), &Foo(32)), (&Foo(12), &Foo(22), &Foo(3
 ```
 
 Flatten a triple-nested structure + complex expression:
+
 ```rust
 use py_comp::comp;
 
