@@ -1,6 +1,6 @@
 [package]
 name = "py-comp"
-version = "0.1.2"
+version = "0.1.3"
 edition = '2018'
 authors = ["Reuven Podmazo <reuven.podmazo@gmail.com>"]
 license = "MIT"

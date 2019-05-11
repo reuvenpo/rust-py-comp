@@ -1,6 +1,6 @@
 # Changelog
 
-## Version next
+## Version 0.1.3
 
 * Fixed bug preventing usage of `IntoIterator`s which are not copy
 * Added clarification to Readme.md about `Copy` requirements of
