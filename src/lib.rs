@@ -241,6 +241,18 @@ macro_rules! comp {
         }
     };
 
+    // for in
+    (
+        $item_expr: expr;
+        for $pattern: pat in $into_iterator: expr $(;)?
+    ) => {{
+        let into_iterator = $into_iterator;
+        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
+        into_iterator
+            .into_iter()
+            .map(move |$pattern| $item_expr)
+    }};
+
     // for in $( if $( if-let )* )+
     (
         $item_expr: expr;
@@ -291,16 +303,19 @@ macro_rules! comp {
             )
     }};
 
-    // for in
+    // for in for ...
     (
         $item_expr: expr;
-        for $pattern: pat in $into_iterator: expr $(;)?
+        for $pattern: pat in $into_iterator: expr;
+        for $($rest: tt)*
     ) => {{
         let into_iterator = $into_iterator;
         $crate::__py_comp_assert_impl_into_iter(&into_iterator);
         into_iterator
             .into_iter()
-            .map(move |$pattern| $item_expr)
+            .flat_map(move |$pattern|
+                comp!($item_expr; for $($rest)*)
+            )
     }};
 
     // for in $( if $( if-let )* )+ for ...
@@ -355,20 +370,5 @@ macro_rules! comp {
                 )
             )
             .flatten()
-    }};
-
-    // for in for ...
-    (
-        $item_expr: expr;
-        for $pattern: pat in $into_iterator: expr;
-        for $($rest: tt)*
-    ) => {{
-        let into_iterator = $into_iterator;
-        $crate::__py_comp_assert_impl_into_iter(&into_iterator);
-        into_iterator
-            .into_iter()
-            .flat_map(move |$pattern|
-                comp!($item_expr; for $($rest)*)
-            )
     }};
 }
