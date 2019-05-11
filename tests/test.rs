@@ -1,4 +1,11 @@
+//! The tests in this file are just simple use cases and general usability
+//! checks and examples.
+//!
+//! For more complex tests, drill down to the sub modules.
+
 use py_comp::comp;
+
+mod test_if_chains;
 
 /// This is a stand-in for any type that does not implement Copy or Clone.
 /// Using this type we can know that our implementation does not depend on
@@ -53,7 +60,7 @@ fn basic_implementation_1_layer() {
 }
 
 #[test]
-fn basic_implementation_with_condition_1_layer() {
+fn basic_implementation_with_if_condition_1_layer() {
     // This needs to be a reference to an array because of how the closures
     // capture their environment
     let x = &[Foo(1), Foo(2)];
@@ -123,7 +130,7 @@ fn basic_implementation_cartesian_4_layers() {
 }
 
 #[test]
-fn basic_implementation_cartesian_with_conditions_4_layers() {
+fn basic_implementation_cartesian_with_if_conditions_4_layers() {
     // These need to be references to arrays because of how the closures
     // capture their environment
     let w = &[Foo(1), Foo(2)];
@@ -246,7 +253,7 @@ fn comp_1_layer() {
 }
 
 #[test]
-fn comp_with_condition_1_layer() {
+fn comp_with_if_condition_1_layer() {
     // This needs to be a reference to an array because of how the closures
     // capture their environment
     let x = &[Foo(1), Foo(2)];
@@ -308,7 +315,7 @@ fn comp_with_pattern_1_layer() {
 }
 
 #[test]
-fn comp_with_pattern_with_condition_1_layer() {
+fn comp_with_pattern_with_if_condition_1_layer() {
     // This needs to be a reference to an array because of how the closures
     // capture their environment
     let x = &[(Foo(1), Foo(2)), (Foo(3), Foo(4))];
@@ -363,7 +370,7 @@ fn comp_cartesian_4_layers() {
 }
 
 #[test]
-fn comp_cartesian_with_conditions_4_layers() {
+fn comp_cartesian_with_if_conditions_4_layers() {
     // These need to be references to arrays because of how the closures
     // capture their environment
     let w = &[Foo(1), Foo(2)];
@@ -407,7 +414,7 @@ fn comp_cartesian_with_conditions_4_layers() {
 }
 
 #[test]
-fn comp_cartesian_with_if_let_conditions_4_layers() {
+fn comp_cartesian_with_if_and_if_let_conditions_4_layers() {
     // These need to be references to arrays because of how the closures
     // capture their environment
     let w = &[Foo(1), Foo(2)];
@@ -483,7 +490,7 @@ fn comp_cartesian_with_pattern_4_layers() {
 }
 
 #[test]
-fn comp_cartesian_with_pattern_with_conditions_4_layers() {
+fn comp_cartesian_with_pattern_with_if_conditions_4_layers() {
     // These need to be references to arrays because of how the closures
     // capture their environment
     let w = &[(Foo(1), Foo(99)), (Foo(2), Foo(99))];

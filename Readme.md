@@ -37,13 +37,13 @@ This means that it can be `.collect()`ed into any container you like.
 
 Note though that, at least for now, all objects named in an `in` clause,
 (except for the first `in` clause) must be either `Copy` or introduced by
-the previous `for` or `if let` clause. This is because the macro uses a
+the previous `for` or `if let` clauses. This is because the macro uses a
 `move` closure (`FnOnce`) for each level of nesting, which may need to be
 instantiated more than once without implicit cloning of the captured
 objects.
 Similarly, objects named in the "yield" expression (preceding the first
 `for` clause) must be `Copy` types if they were not introduced by the final
-`for` or `if let` clause. This is because they may be used in multiple
+`for` or `if let` clauses. This is because they may be used in multiple
 output items.
 
 Specifying which objects should be cloned and where may be added in the
@@ -52,11 +52,11 @@ future, but will probably require a breaking change.
 This is a BNF description of the syntax used by this macro:
 
 ```bnf
-comprehension ::=  expression ";" comp_for [";"]
-comp_for      ::=  "for" pattern "in" expression [";" comp_iter]
-comp_iter     ::=  comp_for | comp_if | comp_if_let
-comp_if       ::=  "if" expression [";" comp_for]
-comp_if_let   ::=  "if" "let" pattern ("|" pattern)* "=" expression [";" comp_for]
+comprehension ::=  expression ";" comp_for [comp_iter] [";"]
+comp_iter     ::=  ";" (comp_for | comp_if | comp_if_let)
+comp_for      ::=  "for" pattern "in" expression [comp_iter]
+comp_if       ::=  "if" expression [comp_iter]
+comp_if_let   ::=  "if" "let" pattern ("|" pattern)* "=" expression [comp_iter]
 ```
 
 Just like in Python, you can nest as many `for`, `if`, and `if let`
